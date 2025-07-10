@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>To-Do List</title>
+  <style>
+    :root {
+      --accent: #4f8cff;
+      --bg: #f5f7fa;
+      --card-bg: #ffffff;
+      --text: #333333;
+      --border: #e1e4e8;
+      --completed: #888888;
+    }
+    
+    body.dark {
+      --bg: #1a1a1a;
+      --card-bg: #2d2d2d;
+      --text: #f0f0f0;
+      --border: #444444;
+      --completed: #777777;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 20px;
+      transition: background 0.3s ease;
+    }
+    
+    .todo-card {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      padding: 25px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    .main-title {
+      text-align: center;
+      margin-bottom: 25px;
+      color: var(--accent);
+    }
+    
+    .todo-form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    
+    .todo-input {
+      padding: 12px 15px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 16px;
+      background-color: var(--card-bg);
+      color: var(--text);
+    }
+    
+    .add-btn {
+      background-color: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    .add-btn:hover {
+      background-color: #3a7be4;
+    }
+    
+    .todo-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .todo-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 15px;
+      margin-bottom: 10px;
+      background-color: var(--card-bg);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      transition: transform 0.2s;
+    }
+    
+    .todo-item:hover {
+      transform: translateY(-2px);
+    }
+    
+    .todo-text {
+      flex-grow: 1;
+      margin: 0 15px;
+    }
+    
+    .todo-item.completed .todo-text {
+      text-decoration: line-through;
+      color: var(--completed);
+    }
+    
+    .custom-checkbox {
+      width: 22px;
+      height: 22px;
+      border: 2px solid var(--accent);
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    
+    .custom-checkbox.checked {
+      background-color: var(--accent);
+    }
+    
+    .delete-btn {
+      background: none;
+      border: none;
+      color: #ff5c5c;
+      font-size: 20px;
+      cursor: pointer;
+      padding: 0 5px;
+    }
+    
+    .task-counter {
+      text-align: center;
+      margin: 15px 0;
+      color: var(--completed);
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 30px;
+      color: var(--completed);
+    }
+    
+    .theme-toggle {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 20px;
+    }
+    
+    .due-date-label {
+      font-size: 12px;
+      background-color: rgba(79, 140, 255, 0.1);
+      color: var(--accent);
+      padding: 3px 6px;
+      border-radius: 4px;
+      margin-left: 10px;
+    }
+    
+    .task-note {
+      font-size: 14px;
+      color: var(--completed);
+      margin-top: 5px;
+      padding-left: 10px;
+      border-left: 2px solid var(--border);
+    }
+    
+    .progress-bar-container {
+      height: 6px;
+      background-color: #e1e4e8;
+      border-radius: 3px;
+      margin: 15px 0;
+      overflow: hidden;
+    }
+    
+    .progress-bar {
+      height: 100%;
+      background-color: var(--accent);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    
+    .progress-label {
+      display: block;
+      text-align: center;
+      font-size: 12px;
+      color: var(--completed);
+    }
+    
+    @media (max-width: 600px) {
+      .todo-card {
+        padding: 15px;
+      }
+    }
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      border: 0;
+    }
+    .add-btn:focus, .delete-btn:focus, .custom-checkbox:focus, .theme-toggle:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+      box-shadow: 0 0 0 2px rgba(79,140,255,0.2);
+    }
+    .add-btn:hover, .add-btn:focus {
+      background-color: #3a7be4;
+      filter: brightness(1.05);
+    }
+    .delete-btn:hover, .delete-btn:focus {
+      color: #ff1a1a;
+      background: rgba(255,92,92,0.08);
+      border-radius: 50%;
+    }
+    .todo-item {
+      opacity: 0;
+      animation: fadeIn 0.4s forwards;
+    }
+    .todo-item.removing {
+      animation: fadeOut 0.3s forwards;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: none; }
+    }
+    @keyframes fadeOut {
+      from { opacity: 1; transform: none; }
+      to { opacity: 0; transform: translateY(10px); }
+    }
+    .progress-bar {
+      transition: width 0.5s cubic-bezier(.4,1.4,.6,1);
+    }
+  </style>
+</head>
+<body>
+  <div class="todo-card">
+    <div style="display:flex;gap:10px;align-items:center;position:absolute;top:20px;right:20px;">
+      <input type="color" id="accent-picker" title="Pick accent color" style="width:32px;height:32px;border:none;background:none;cursor:pointer;">
+      <button class="theme-toggle" id="theme-toggle" aria-pressed="false">🌓</button>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <h1 class="main-title">To-Do List</h1>
+      <div style="display:flex;gap:8px;">
+        <button id="voice-btn" title="Add by voice" class="add-btn" style="padding:6px 10px;font-size:18px;">🎤</button>
+        <button id="print-btn" title="Print tasks" class="add-btn" style="padding:6px 10px;font-size:18px;">🖨️</button>
+      </div>
+    </div>
+    
+    <div id="quote-box" style="margin-bottom:18px;text-align:center;font-size:15px;color:var(--completed);font-style:italic;"></div>
+    <form id="todo-form" class="todo-form">
+      <label for="todo-input" class="visually-hidden">Add a new task</label>
+      <input type="text" id="todo-input" class="todo-input" placeholder="Add a new task..." required autocomplete="off">
+      <button type="submit" class="add-btn">Add Task</button>
+    </form>
+    
+    <div id="task-counter" class="task-counter" aria-live="polite">0 tasks</div>
+    <div id="progress-bar-container" class="progress-bar-container">
+      <div id="progress-bar" class="progress-bar"></div>
+    </div>
+    <div id="progress-label" class="progress-label">0%</div>
+    <div id="analytics-panel" style="display:flex;justify-content:center;gap:24px;margin:10px 0 0 0;font-size:14px;color:var(--completed);"></div>
+    <div style="display:flex;justify-content:center;gap:12px;margin:10px 0 18px 0;">
+      <button id="export-btn" class="add-btn" style="padding:6px 18px;">Export</button>
+      <label for="import-input" class="add-btn" style="padding:6px 18px;cursor:pointer;display:inline-block;">
+        Import
+        <input id="import-input" type="file" accept="application/json" style="display:none;">
+      </label>
+    </div>
+    
+    <ul id="todo-list" class="todo-list"></ul>
+    
+    <div id="empty-state" class="empty-state">
+      No tasks yet! Add your first one.
+    </div>
+    <div id="bulk-actions-bar" style="display:none;position:fixed;bottom:0;left:0;width:100%;background:var(--card-bg);box-shadow:0 -2px 12px rgba(0,0,0,0.08);padding:12px 0;z-index:1500;display:flex;justify-content:center;gap:16px;align-items:center;">
+      <span id="bulk-count" style="color:var(--accent);font-weight:bold;"></span>
+      <button id="bulk-complete" class="add-btn" style="padding:6px 18px;">Complete</button>
+      <button id="bulk-delete" class="delete-btn" style="font-size:18px;padding:6px 18px;">Delete</button>
+      <button id="bulk-clear" class="add-btn" style="padding:6px 18px;background:var(--border);color:var(--text);">Clear</button>
+    </div>
+    <div id="snackbar" style="display:none;position:fixed;left:50%;bottom:32px;transform:translateX(-50%);background:var(--card-bg);color:var(--text);padding:14px 24px;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,0.08);z-index:2000;font-size:16px;min-width:200px;align-items:center;gap:12px;transition:opacity 0.3s;">
+      <span id="snackbar-msg"></span>
+      <button id="snackbar-undo" style="background:none;border:none;color:var(--accent);font-weight:bold;cursor:pointer;font-size:16px;">Undo</button>
+    </div>
+    <div id="shortcuts-overlay" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.32);z-index:3000;align-items:center;justify-content:center;">
+      <div style="background:var(--card-bg);color:var(--text);padding:32px 28px 24px 28px;border-radius:16px;box-shadow:0 4px 32px rgba(0,0,0,0.18);max-width:90vw;max-height:90vh;overflow:auto;">
+        <h2 style="margin-top:0;font-size:1.3em;">Keyboard Shortcuts</h2>
+        <ul style="list-style:none;padding:0;line-height:2;">
+          <li><b>?</b> — Show/hide this help</li>
+          <li><b>Tab</b> — Move focus</li>
+          <li><b>Enter</b> — Add task / Save edit</li>
+          <li><b>Escape</b> — Clear input / Cancel edit / Dismiss overlays</li>
+          <li><b>Double-click</b> task — Edit in place</li>
+          <li><b>Space/Enter</b> on checkbox — Toggle complete</li>
+          <li><b>Bulk actions</b> — Use checkboxes to select, then use bar at bottom</li>
+        </ul>
+        <div style="text-align:right;margin-top:18px;">
+          <button id="shortcuts-close" class="add-btn" style="padding:6px 18px;">Close</button>
+        </div>
+      </div>
+    </div>
+    <button id="pwa-install-btn" style="display:none;position:fixed;bottom:24px;right:24px;z-index:4000;background:var(--card-bg);color:var(--accent);border:1px solid var(--border);border-radius:8px;padding:12px 20px;font-size:16px;box-shadow:0 2px 12px rgba(0,0,0,0.08);cursor:pointer;">Install App</button>
+  </div>
+
+  <script>
+    // =====================
+    // DOM Elements
+    // =====================
+    const todoForm = document.getElementById('todo-form');
+    const todoInput = document.getElementById('todo-input');
+    const todoList = document.getElementById('todo-list');
+    const emptyState = document.getElementById('empty-state');
+    const themeToggle = document.getElementById('theme-toggle');
+    const taskCounter = document.getElementById('task-counter');
+    const progressBar = document.getElementById('progress-bar');
+    const progressLabel = document.getElementById('progress-label');
+    const progressContainer = document.getElementById('progress-bar-container');
+
+    // =====================
+    // State Management
+    // =====================
+    let todos = [];
+    let darkMode = false;
+
+    // =====================
+    // Utilities
+    // =====================
+    function loadTodos() {
+      try {
+        const stored = localStorage.getItem('todos');
+        return stored ? JSON.parse(stored) : [];
+      } catch (error) {
+        console.error('Failed to load todos:', error);
+        return [];
+      }
+    }
+
+    function saveTodos() {
+      try {
+        localStorage.setItem('todos', JSON.stringify(todos));
+      } catch (error) {
+        console.error('Failed to save todos:', error);
+      }
+    }
+
+    function loadTheme() {
+      try {
+        return localStorage.getItem('darkMode') === 'true';
+      } catch (error) {
+        console.error('Failed to load theme:', error);
+        return false;
+      }
+    }
+
+    function saveTheme() {
+      try {
+        localStorage.setItem('darkMode', darkMode);
+      } catch (error) {
+        console.error('Failed to save theme:', error);
+      }
+    }
+
+    function announce(message) {
+      // For screen readers
+      const announcement = document.createElement('div');
+      announcement.setAttribute('aria-live', 'polite');
+      announcement.setAttribute('aria-atomic', 'true');
+      announcement.style.position = 'absolute';
+      announcement.style.left = '-10000px';
+      announcement.style.width = '1px';
+      announcement.style.height = '1px';
+      announcement.style.overflow = 'hidden';
+      announcement.textContent = message;
+      document.body.appendChild(announcement);
+      setTimeout(() => announcement.remove(), 1000);
+    }
+
+    // =====================
+    // Sound & Effects
+    // =====================
+    function playCompleteSound() {
+      try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(600, audioContext.currentTime + 0.1);
+        
+        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.1);
+      } catch (error) {
+        console.log('Audio play failed:', error);
+      }
+    }
+
+    function showConfetti() {
+      const confetti = document.createElement('div');
+      confetti.className = 'confetti-container';
+      confetti.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 1000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 24px;
+      `;
+      
+      const emojis = ['🎉', '✨', '🌟', '💫', '🥳'];
+      let html = '';
+      
+      for (let i = 0; i < 50; i++) {
+        const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+        const style = `
+          position: absolute;
+          top: ${Math.random() * 100}%;
+          left: ${Math.random() * 100}%;
+          transform: translate(-50%, -50%) rotate(${Math.random() * 360}deg);
+          opacity: ${Math.random() * 0.5 + 0.5};
+          animation: confetti-fall ${Math.random() * 2 + 1}s linear forwards;
+        `;
+        html += `<span style="${style}">${emoji}</span>`;
+      }
+      
+      confetti.innerHTML = html;
+      document.body.appendChild(confetti);
+      
+      // Add CSS animation if not already present
+      if (!document.getElementById('confetti-styles')) {
+        const style = document.createElement('style');
+        style.id = 'confetti-styles';
+        style.textContent = `
+          @keyframes confetti-fall {
+            to {
+              transform: translate(-50%, 100vh) rotate(360deg);
+              opacity: 0;
+            }
+          }
+        `;
+        document.head.appendChild(style);
+      }
+      
+      setTimeout(() => confetti.remove(), 3000);
+    }
+
+    // =====================
+    // Core Functions
+    // =====================
+    let addTaskTimeout = null;
+    function addTodo(e) {
+      e.preventDefault();
+      if (addTaskTimeout) return; // debounce
+      addTaskTimeout = setTimeout(() => { addTaskTimeout = null; }, 300);
+      const todoText = todoInput.value.trim();
+      if (!todoText) {
+        announce('Please enter a task');
+        return;
+      }
+      const newTodo = {
+        id: Date.now() + Math.random().toString(16).slice(2),
+        text: todoText,
+        completed: false,
+        createdAt: new Date().toISOString()
+      };
+      todos.unshift(newTodo); // newest on top
+      saveTodos();
+      renderTodos();
+      announce(`Added task: ${todoText}`);
+      todoInput.value = '';
+      todoInput.focus();
+    }
+
+    function toggleComplete(id) {
+      const todo = todos.find(t => t.id === id);
+      if (!todo) return;
+      
+      todo.completed = !todo.completed;
+      saveTodos();
+      renderTodos();
+      
+      if (todo.completed) {
+        playCompleteSound();
+        announce(`Completed task: ${todo.text}`);
+      } else {
+        announce(`Uncompleted task: ${todo.text}`);
+      }
+    }
+
+    // =====================
+    // Undo Delete Snackbar
+    // =====================
+    let lastDeletedTask = null;
+    let snackbarTimeout = null;
+    const snackbar = document.getElementById('snackbar');
+    const snackbarMsg = document.getElementById('snackbar-msg');
+    const snackbarUndo = document.getElementById('snackbar-undo');
+
+    function showSnackbar(message, undoCallback) {
+      snackbarMsg.textContent = message;
+      snackbar.style.display = 'flex';
+      snackbar.style.opacity = '1';
+      snackbarUndo.onclick = () => {
+        hideSnackbar();
+        if (undoCallback) undoCallback();
+      };
+      clearTimeout(snackbarTimeout);
+      snackbarTimeout = setTimeout(hideSnackbar, 4000);
+    }
+
+    function hideSnackbar() {
+      snackbar.style.opacity = '0';
+      setTimeout(() => { snackbar.style.display = 'none'; }, 300);
+    }
+
+    function deleteTodo(id) {
+      const todo = todos.find(t => t.id === id);
+      if (!todo) return;
+      lastDeletedTask = todo;
+      const li = todoList.querySelector(`li[data-id="${id}"]`);
+      if (li) {
+        li.classList.add('removing');
+        setTimeout(() => {
+          todos = todos.filter(t => t.id !== id);
+          saveTodos();
+          renderTodos();
+          showSnackbar('Task deleted.', () => {
+            todos.unshift(lastDeletedTask);
+            saveTodos();
+            renderTodos();
+            announce('Undo: Task restored.');
+            lastDeletedTask = null;
+          });
+          announce(`Deleted task: ${todo.text}`);
+        }, 280);
+      } else {
+        todos = todos.filter(t => t.id !== id);
+        saveTodos();
+        renderTodos();
+        showSnackbar('Task deleted.', () => {
+          todos.unshift(lastDeletedTask);
+          saveTodos();
+          renderTodos();
+          announce('Undo: Task restored.');
+          lastDeletedTask = null;
+        });
+        announce(`Deleted task: ${todo.text}`);
+      }
+    }
+
+    function renderTodos() {
+      updateAnalytics();
+      const hasTodos = todos.length > 0;
+      
+      emptyState.style.display = hasTodos ? 'none' : 'block';
+      todoList.style.display = hasTodos ? 'block' : 'none';
+      progressContainer.style.display = hasTodos ? 'block' : 'none';
+      
+      todoList.innerHTML = '';
+      
+      todos.forEach(todo => {
+        const li = document.createElement('li');
+        li.className = `todo-item${todo.completed ? ' completed' : ''}`;
+        li.dataset.id = todo.id;
+        li.innerHTML = `
+          <input type="checkbox" class="select-checkbox" style="margin-right:10px;" ${selectedIds.has(todo.id) ? 'checked' : ''} aria-label="Select task">
+          <span class="custom-checkbox ${todo.completed ? 'checked' : ''}"
+                role="checkbox"
+                tabindex="0"
+                aria-checked="${todo.completed}"
+                aria-label="${todo.completed ? 'Mark as incomplete' : 'Mark as complete'}">
+          </span>
+          ${todo.label ? `<span class='label-dot' style='display:inline-block;width:14px;height:14px;border-radius:50%;background:${todo.label};margin-right:8px;vertical-align:middle;border:1.5px solid var(--border);'></span>` : ''}
+          <span class="todo-text" tabindex="0">${todo.text}</span>
+          <button class="delete-btn" aria-label="Delete task">×</button>
+          ${window.renderActionWheel ? window.renderActionWheel(todo) : ''}
+        `;
+        const checkbox = li.querySelector('.custom-checkbox');
+        const deleteBtn = li.querySelector('.delete-btn');
+        const selectBox = li.querySelector('.select-checkbox');
+        selectBox.addEventListener('change', (e) => {
+          if (e.target.checked) selectedIds.add(todo.id);
+          else selectedIds.delete(todo.id);
+          updateBulkBar();
+        });
+        checkbox.addEventListener('click', () => toggleComplete(todo.id));
+        checkbox.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            toggleComplete(todo.id);
+          }
+        });
+        deleteBtn.addEventListener('click', () => deleteTodo(todo.id));
+        // Edit-in-place logic
+        const todoTextSpan = li.querySelector('.todo-text');
+        todoTextSpan.addEventListener('dblclick', () => startEditTodo(todo, todoTextSpan, li));
+        todoTextSpan.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            startEditTodo(todo, todoTextSpan, li);
+          }
+        });
+        todoList.appendChild(li);
+        setTimeout(() => { li.style.opacity = 1; }, 10); // fade in
+      });
+      
+      updateTaskCounter();
+      updateProgress();
+      if (window.attachActionWheelEvents) window.attachActionWheelEvents();
+    }
+
+    function updateTaskCounter() {
+      const total = todos.length;
+      const completed = todos.filter(todo => todo.completed).length;
+      
+      taskCounter.textContent = `${total} task${total !== 1 ? 's' : ''} (${completed} completed)`;
+    }
+
+    function updateProgress() {
+      const total = todos.length;
+      const completed = todos.filter(todo => todo.completed).length;
+      const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+      
+      progressBar.style.width = `${percentage}%`;
+      progressLabel.textContent = `${percentage}%`;
+      
+      if (total > 0 && completed === total) {
+        showConfetti();
+        announce('Congratulations! All tasks completed!');
+      }
+    }
+
+    // =====================
+    // Minimal Analytics Panel
+    // =====================
+    const analyticsPanel = document.getElementById('analytics-panel');
+    function updateAnalytics() {
+      const now = new Date();
+      const today = now.toISOString().slice(0, 10);
+      const weekStart = new Date(now);
+      weekStart.setDate(now.getDate() - now.getDay());
+      const weekStartStr = weekStart.toISOString().slice(0, 10);
+      let addedToday = 0, addedThisWeek = 0, totalCompleted = 0;
+      todos.forEach(t => {
+        if (t.createdAt && t.createdAt.slice(0, 10) === today) addedToday++;
+        if (t.createdAt && t.createdAt.slice(0, 10) >= weekStartStr) addedThisWeek++;
+        if (t.completed) totalCompleted++;
+      });
+      analyticsPanel.innerHTML =
+        `<span>Added today: <b>${addedToday}</b></span>` +
+        `<span>Added this week: <b>${addedThisWeek}</b></span>` +
+        `<span>Total completed: <b>${totalCompleted}</b></span>`;
+    }
+
+    // =====================
+    // Theme Management
+    // =====================
+    function toggleTheme() {
+      darkMode = !darkMode;
+      document.body.classList.toggle('dark', darkMode);
+      saveTheme();
+      updateTheme();
+      announce(darkMode ? 'Dark mode enabled' : 'Light mode enabled');
+    }
+
+    function updateTheme() {
+      themeToggle.textContent = darkMode ? '☀️' : '🌙';
+      themeToggle.setAttribute('aria-label', darkMode ? 'Switch to light mode' : 'Switch to dark mode');
+      themeToggle.setAttribute('aria-pressed', darkMode ? 'true' : 'false');
+    }
+
+    // =====================
+    // Accent Color Picker
+    // =====================
+    const accentPicker = document.getElementById('accent-picker');
+    function loadAccent() {
+      try {
+        const color = localStorage.getItem('accentColor');
+        if (color) {
+          document.body.setAttribute('data-accent', '1');
+          document.body.style.setProperty('--user-accent', color);
+          accentPicker.value = color;
+        } else {
+          document.body.removeAttribute('data-accent');
+          document.body.style.removeProperty('--user-accent');
+          accentPicker.value = '#4f8cff';
+        }
+      } catch {}
+    }
+    function saveAccent(color) {
+      try {
+        localStorage.setItem('accentColor', color);
+      } catch {}
+    }
+    accentPicker.addEventListener('input', (e) => {
+      const color = e.target.value;
+      document.body.setAttribute('data-accent', '1');
+      document.body.style.setProperty('--user-accent', color);
+      saveAccent(color);
+    });
+
+    // =====================
+    // Bulk Actions
+    // =====================
+    let selectedIds = new Set();
+    const bulkBar = document.getElementById('bulk-actions-bar');
+    const bulkCount = document.getElementById('bulk-count');
+    const bulkComplete = document.getElementById('bulk-complete');
+    const bulkDelete = document.getElementById('bulk-delete');
+    const bulkClear = document.getElementById('bulk-clear');
+
+    function updateBulkBar() {
+      if (selectedIds.size > 0) {
+        bulkBar.style.display = 'flex';
+        bulkCount.textContent = `${selectedIds.size} selected`;
+      } else {
+        bulkBar.style.display = 'none';
+      }
+    }
+
+    bulkComplete.onclick = () => {
+      todos.forEach(todo => {
+        if (selectedIds.has(todo.id)) todo.completed = true;
+      });
+      saveTodos();
+      renderTodos();
+      selectedIds.clear();
+      updateBulkBar();
+    };
+    bulkDelete.onclick = () => {
+      todos = todos.filter(todo => !selectedIds.has(todo.id));
+      saveTodos();
+      renderTodos();
+      selectedIds.clear();
+      updateBulkBar();
+    };
+    bulkClear.onclick = () => {
+      selectedIds.clear();
+      updateBulkBar();
+      renderTodos();
+    };
+
+    // =====================
+    // Motivational Quotes
+    // =====================
+    const quotes = [
+      "Small steps every day.",
+      "You can do it!",
+      "Progress, not perfection.",
+      "Stay positive, work hard.",
+      "Dream big, start small.",
+      "Every accomplishment starts with the decision to try.",
+      "Don’t watch the clock; do what it does. Keep going.",
+      "Success is the sum of small efforts repeated day in and day out.",
+      "The secret of getting ahead is getting started.",
+      "Believe you can and you’re halfway there."
+    ];
+    function showRandomQuote() {
+      const quoteBox = document.getElementById('quote-box');
+      const idx = Math.floor(Math.random() * quotes.length);
+      quoteBox.textContent = quotes[idx];
+    }
+
+    // =====================
+    // Export/Import Tasks
+    // =====================
+    const exportBtn = document.getElementById('export-btn');
+    const importInput = document.getElementById('import-input');
+    exportBtn.onclick = () => {
+      const data = JSON.stringify(todos, null, 2);
+      const blob = new Blob([data], {type: 'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'todos.json';
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
+    };
+    importInput.onchange = (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        try {
+          const imported = JSON.parse(evt.target.result);
+          if (!Array.isArray(imported)) throw new Error('Invalid format');
+          // Merge: keep unique by id, prefer imported if duplicate
+          const existingIds = new Set(todos.map(t => t.id));
+          const merged = [...todos];
+          imported.forEach(t => {
+            if (!existingIds.has(t.id)) merged.push(t);
+          });
+          todos = merged;
+          saveTodos();
+          renderTodos();
+          announce('Tasks imported and merged.');
+        } catch {
+          announce('Import failed. Invalid file.');
+        }
+      };
+      reader.readAsText(file);
+      importInput.value = '';
+    };
+
+    // =====================
+    // Keyboard Shortcuts Overlay
+    // =====================
+    const shortcutsOverlay = document.getElementById('shortcuts-overlay');
+    const shortcutsClose = document.getElementById('shortcuts-close');
+    function showShortcuts() {
+      shortcutsOverlay.style.display = 'flex';
+      shortcutsOverlay.focus();
+    }
+    function hideShortcuts() {
+      shortcutsOverlay.style.display = 'none';
+    }
+    document.addEventListener('keydown', (e) => {
+      if (e.key === '?' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        e.preventDefault();
+        if (shortcutsOverlay.style.display === 'flex') hideShortcuts();
+        else showShortcuts();
+      }
+      if (e.key === 'Escape' && shortcutsOverlay.style.display === 'flex') {
+        hideShortcuts();
+      }
+    });
+    shortcutsOverlay.addEventListener('click', (e) => {
+      if (e.target === shortcutsOverlay) hideShortcuts();
+    });
+    if (shortcutsClose) shortcutsClose.onclick = hideShortcuts;
+
+    // =====================
+    // PWA Install Prompt
+    // =====================
+    let deferredPrompt = null;
+    const pwaBtn = document.getElementById('pwa-install-btn');
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      pwaBtn.style.display = 'block';
+    });
+    pwaBtn.onclick = async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          pwaBtn.style.display = 'none';
+        }
+        deferredPrompt = null;
+      }
+    };
+    window.addEventListener('appinstalled', () => {
+      pwaBtn.style.display = 'none';
+    });
+    // Register service worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(() => {});
+      });
+    }
+
+    // =====================
+    // Initialization
+    // =====================
+    function init() {
+      todos = loadTodos();
+      darkMode = loadTheme();
+      
+      if (darkMode) {
+        document.body.classList.add('dark');
+      }
+      
+      renderTodos();
+      updateTheme();
+      loadAccent();
+      showRandomQuote();
+      
+      // Event Listeners
+      todoForm.addEventListener('submit', addTodo);
+      themeToggle.addEventListener('click', toggleTheme);
+      
+      // Focus management
+      todoInput.focus();
+    }
+
+    // Edit-in-place helpers
+    function startEditTodo(todo, span, li) {
+      if (li.querySelector('input')) return; // already editing
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.value = todo.text;
+      input.className = 'todo-input';
+      input.style.margin = '0 15px';
+      input.style.flexGrow = '1';
+      input.setAttribute('aria-label', 'Edit task');
+      span.replaceWith(input);
+      input.focus();
+      input.select();
+      function finishEdit(save) {
+        if (save) {
+          const newText = input.value.trim();
+          if (newText && newText !== todo.text) {
+            todo.text = newText;
+            saveTodos();
+            announce('Task updated.');
+          }
+        }
+        renderTodos();
+      }
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') finishEdit(true);
+        if (e.key === 'Escape') finishEdit(false);
+      });
+      input.addEventListener('blur', () => finishEdit(true));
+    }
+
+    // Add event listeners for voice and print buttons
+    document.getElementById('voice-btn').onclick = function() { if (window.startVoiceTask) window.startVoiceTask(); };
+    document.getElementById('print-btn').onclick = function() { if (window.printTasks) window.printTasks(); };
+    // Helper for label prompt
+    window.setTaskLabelPrompt = function(id) {
+      const color = prompt('Enter label color (e.g. #ff0 or red):');
+      if (color && window.setTaskLabel) window.setTaskLabel(id, color);
+    };
+
+    // Initialize the app
+    init();
+  </script>
+  <script src="darkmode.js"></script>
+  <script src="motivation.js"></script>
+  <script src="reminders.js"></script>
+  <script src="voice.js"></script>
+  <script src="streak.js"></script>
+  <script src="funfact.js"></script>
+  <script src="print.js"></script>
+  <script src="easteregg.js"></script>
+  <script src="mood.js"></script>
+  <script src="pomodoro.js"></script>
+  <script src="location.js"></script>
+  <script src="share.js"></script>
+  <script src="labels.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

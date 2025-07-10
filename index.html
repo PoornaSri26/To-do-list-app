@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>To-Do List App</title>
+  <link rel="stylesheet" href="src/styles.css">
+  <link rel="stylesheet" href="src/style.css">
+  <link rel="manifest" href="src/To do list app/manifest.json">
+  <meta name="description" content="A beautiful, feature-rich to-do list app with dark mode, PWA support, and offline functionality">
+  <meta name="theme-color" content="#4f8cff">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📝</text></svg>">
+</head>
+<body>
+  <div class="todo-card">
+    <h1 class="main-title">📝 To-Do List</h1>
+    
+    <form class="todo-form" id="todoForm">
+      <input type="text" class="todo-input" id="todoInput" placeholder="What needs to be done?" required>
+      <button type="submit" class="add-btn">Add Task</button>
+    </form>
+    
+    <div class="progress-bar-container">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+    <span class="progress-label" id="progressLabel">0% Complete</span>
+    
+    <div class="task-counter" id="taskCounter">0 tasks</div>
+    
+    <ul class="todo-list" id="todoList">
+      <!-- Tasks will be rendered here -->
+    </ul>
+    
+    <div class="empty-state" id="emptyState" style="display: none;">
+      <p>No tasks yet. Add one above to get started!</p>
+    </div>
+  </div>
+
+  <!-- Theme Toggle -->
+  <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode">🌙</button>
+
+  <!-- Scripts -->
+  <script src="src/To do list app/app.js"></script>
+  <script src="src/To do list app/darkmode.js"></script>
+  <script src="src/To do list app/voice.js"></script>
+  <script src="src/To do list app/pomodoro.js"></script>
+  <script src="src/To do list app/location.js"></script>
+  <script src="src/To do list app/share.js"></script>
+  <script src="src/To do list app/labels.js"></script>
+  <script src="src/To do list app/reminders.js"></script>
+  <script src="src/To do list app/mood.js"></script>
+  <script src="src/To do list app/motivation.js"></script>
+  <script src="src/To do list app/funfact.js"></script>
+  <script src="src/To do list app/easteregg.js"></script>
+  <script src="src/To do list app/streak.js"></script>
+  <script src="src/To do list app/print.js"></script>
+  <script src="src/To do list app/sw.js"></script>
+
+  <script>
+    // Main app initialization
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize the app
+      if (typeof window.initApp === 'function') {
+        window.initApp();
+      }
+    });
+  </script>
+</body>
+</html> 
